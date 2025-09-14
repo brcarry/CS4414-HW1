@@ -25,7 +25,21 @@ Node* buildKD(std::vector<std::pair<Embedding_T,int>>& items, int depth) {
     You should recursively construct the tree and return the root node.
     For now, this is a stub that returns nullptr.
     */
-    return nullptr;
+    if (items.empty()) return nullptr;
+
+    static bool sorted = false;
+    if (!sorted) {
+        std::sort(items.begin(), items.end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; });
+        sorted = true;
+    }
+    size_t mid = items.size() / 2;
+    Node* node = new Node(items[mid].first, items[mid].second);
+    std::vector<std::pair<Embedding_T,int>> left(items.begin(), items.begin() + mid);
+    std::vector<std::pair<Embedding_T,int>> right(items.begin() + mid + 1, items.end());
+    node->left = buildKD(left, depth + 1);
+    node->right = buildKD(right, depth + 1);
+    return node;
 }
 
 
@@ -47,5 +61,10 @@ void knnSearch(Node *node,
     You should recursively traverse the tree and maintain a max-heap of the K closest points found so far.
     For now, this is a stub that does nothing.
     */
-    return;
+   if (!node) return;
+   float dist = distance(node->embedding, Node::queryEmbedding);
+   heap.push({dist, node->idx});
+   if (heap.size() > static_cast<size_t>(K)) heap.pop();
+   knnSearch(node->left, depth + 1, K, heap);
+   knnSearch(node->right, depth + 1, K, heap);
 }
